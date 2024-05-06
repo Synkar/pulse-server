@@ -1,0 +1,26 @@
+#!/bin/bash -ex
+
+# Checks if the sink is set to analog-stereo
+check_sink() {
+    pactl list sinks | grep -q "alsa_output.pci-0000_00_1f.3.analog-stereo"
+    return $?
+}
+
+# Waits until PulseAudio stops outputting "Connection refused"
+wait_for_pulseaudio() {
+    while pactl list sinks 2>&1 | grep -q "Connection refused"; do
+        echo "Waiting for PulseAudio to be ready"
+        sleep 1
+    done
+}
+
+while ! check_sink
+do
+    echo "Restarting PulseAudio"
+    snapctl restart pulse-server.pulseaudio
+    wait_for_pulseaudio
+    echo "Setting profile to analog-stereo"
+    pactl set-card-profile alsa_card.pci-0000_00_1f.3 output:analog-stereo || true
+done
+
+echo "PulseAudio is ready, profile is set to analog-stereo"
