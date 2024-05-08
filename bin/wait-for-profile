@@ -1,8 +1,12 @@
 #!/bin/bash -ex
 
-# Checks if the sink is set to analog-stereo
+# Get the audio card and profile from the snap configuration
+card=$(snapctl get card)
+profile=$(snapctl get profile)
+
+# Checks if the card is set to the correct profile
 check_sink() {
-    pactl list sinks | grep -q "alsa_output.pci-0000_00_1f.3.analog-stereo"
+    pactl list sinks | grep -q "alsa_output.$card.$profile"
     return $?
 }
 
@@ -19,8 +23,13 @@ do
     echo "Restarting PulseAudio"
     snapctl restart pulse-server.pulseaudio
     wait_for_pulseaudio
-    echo "Setting profile to analog-stereo"
-    pactl set-card-profile alsa_card.pci-0000_00_1f.3 output:analog-stereo || true
+
+    # Update the card and profile
+    card=$(snapctl get card)
+    profile=$(snapctl get profile)
+
+    echo "Setting card $card to profile $profile"
+    pactl set-card-profile alsa_card.$card output:$profile || true
 done
 
-echo "PulseAudio is ready, profile is set to analog-stereo"
+echo "PulseAudio is ready, $card is set to $profile"
