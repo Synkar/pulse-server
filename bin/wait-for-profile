@@ -33,3 +33,4 @@ do
 done
 
 echo "PulseAudio is ready, $card is set to $profile"
+

@@ -9,3 +9,4 @@ profile="$(snapctl get profile)"
 if [ -z "$profile" ]; then
     snapctl set profile="analog-stereo"
 fi
+
