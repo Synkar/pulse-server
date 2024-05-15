@@ -1,0 +1,36 @@
+#!/bin/bash -ex
+
+# Get the audio card and profile from the snap configuration
+card=$(snapctl get card)
+profile=$(snapctl get profile)
+
+# Checks if the card is set to the correct profile
+check_sink() {
+    pactl list sinks | grep -q "alsa_output.$card.$profile"
+    return $?
+}
+
+# Waits until PulseAudio stops outputting "Connection refused"
+wait_for_pulseaudio() {
+    while pactl list sinks 2>&1 | grep -q "Connection refused"; do
+        echo "Waiting for PulseAudio to be ready"
+        sleep 1
+    done
+}
+
+while ! check_sink
+do
+    echo "Restarting PulseAudio"
+    snapctl restart pulse-server.pulseaudio
+    wait_for_pulseaudio
+
+    # Update the card and profile
+    card=$(snapctl get card)
+    profile=$(snapctl get profile)
+
+    echo "Setting card $card to profile $profile"
+    pactl set-card-profile alsa_card.$card output:$profile || true
+done
+
+echo "PulseAudio is ready, $card is set to $profile"
+

@@ -15,7 +15,7 @@ apps:
   pulseaudio:
     command: bin/pulseaudio
     daemon: simple
-    install-mode: disable
+    install-mode: enable
     plugs:
       - alsa
       - bluez
@@ -25,6 +25,14 @@ apps:
     slots:
       - audio-playback
       - audio-record
+  wait-for-profile:
+    command: bin/wait-for-profile
+    daemon: simple
+    install-mode: enable
+    plugs:
+      - network
+      - playback
+      - record
   pactl:
     command-chain: [bin/client-wrapper]
     command: usr/bin/pactl
@@ -92,6 +100,7 @@ parts:
       client-wrapper: bin/client-wrapper
       config: bin/config
       pulseaudio: bin/pulseaudio
+      wait-for-profile: bin/wait-for-profile
   alsa-lib:
     plugin: autotools
     source: https://github.com/alsa-project/alsa-lib.git
